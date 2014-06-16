@@ -73,4 +73,14 @@ describe('Sandbox', function() {
     });
   });
 
+  it('should expose the process.postMessage command to the sandboxed code', function(done){
+    sb.on('message', function(message){
+      message.should.eql('Hello World!');
+      done();
+    });
+    sb.run('process.postMessage("Hello World!");', function(output){
+
+    });
+  });
+
 });
