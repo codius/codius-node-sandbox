@@ -78,7 +78,7 @@ describe('Sandbox', function() {
       message.should.eql('Hello World!');
       done();
     });
-    sb.run('process.postMessage("Hello World!");', function(output){
+    sb.run('postMessage("Hello World!");', function(output){
 
     });
   });
