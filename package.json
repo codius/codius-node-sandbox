@@ -34,7 +34,6 @@
     "url": "http://github.com/gf3/sandbox/raw/master/UNLICENSE"
   },
   "dependencies": {
-    "buffer": "^2.5.0",
     "concat-stream": "^1.4.6"
   }
 }
