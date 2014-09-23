@@ -1,0 +1,3 @@
+#!/bin/bash
+
+tar -xzvf ../deps/nacl_x86_32.tar.gz --directory ../deps
