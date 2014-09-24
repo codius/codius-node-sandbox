@@ -1,0 +1,3 @@
+exports.HEADER_SIZE = 12;
+exports.MAGIC_BYTES = 0xC0D105FE;
+

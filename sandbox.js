@@ -5,14 +5,16 @@ var path = require('path');
 var EventEmitter = require('events').EventEmitter;
 
 // TODO: Make these configurable
-var NACL_SDK_ROOT = process.env.NACL_SDK_ROOT || __dirname;
+var NACL_SDK_ROOT = process.env.NACL_SDK_ROOT || path.resolve(__dirname, 'deps/nacl_sdk/pepper_35');
+console.log('Using NACL_SDK_ROOT: ' + NACL_SDK_ROOT);
+
 var RUN_CONTRACT_COMMAND = NACL_SDK_ROOT + '/tools/sel_ldr_x86_32';
 var RUN_CONTRACT_LIBS = [
 	__dirname,
 	path.resolve(__dirname, 'deps/v8/out/nacl_ia32.release/lib.target'),
-	NACL_SDK_ROOT +'/ports/lib/glibc_x86_32/Release',
-	NACL_SDK_ROOT + '/toolchain/linux_x86_glibc/x86_64-nacl/lib32',
-	NACL_SDK_ROOT + '/lib/glibc_x86_32/Debug'
+	// NACL_SDK_ROOT +'/ports/lib/glibc_x86_32/Release',
+	path.resolve(NACL_SDK_ROOT, 'toolchain/linux_x86_glibc/x86_64-nacl/lib32'),
+	// NACL_SDK_ROOT + '/lib/glibc_x86_32/Debug'
 ]
 var RUN_CONTRACT_ARGS = [
   '-h', 
@@ -21,10 +23,10 @@ var RUN_CONTRACT_ARGS = [
   '4:4',
   '-a', 
   '--', 
-  NACL_SDK_ROOT + '/toolchain/linux_x86_glibc/x86_64-nacl/lib32/runnable-ld.so', 
+  path.resolve(NACL_SDK_ROOT, 'toolchain/linux_x86_glibc/x86_64-nacl/lib32/runnable-ld.so'), 
   '--library-path', 
   RUN_CONTRACT_LIBS.join(':'),
-  path.resolve(__dirname, 'codius_node.nexe')
+  path.resolve(__dirname, 'deps/codius_node.nexe')
 ];
 var RUN_CONTRACT_COMMAND_NONACL = path.resolve(__dirname, 'codius_node_g');
 var RUN_CONTRACT_ARGS_NONACL = []

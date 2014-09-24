@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 
-var Sandbox = require('./sandbox');
-var PassthroughApi = require('./lib/api/passthrough').PassthroughApi;
+var Sandbox = require('../sandbox');
+var PassthroughApi = require('../test/api/passthrough-api').PassthroughApi;
+
+var contract_filename = process.argv[2];
+if (typeof contract_filename !== 'string' || contract_filename.length < 1) {
+  throw new Error('codius-run must be run with the filename of a contract to run');
+}
 
 var sandbox = new Sandbox({
   api: PassthroughApi,
@@ -10,4 +15,4 @@ var sandbox = new Sandbox({
   enableValgrind: process.env.ENABLE_VALGRIND || false
 });
 // console.log('Running file in Codius sandbox: ' + process.argv[2]);
-sandbox.run('', process.argv[2]);
+sandbox.run('', contract_filename);

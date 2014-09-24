@@ -27,13 +27,16 @@
     "url": "https://gf3@github.com/gf3/sandbox.git"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "postinstall": "bin/unzip-nacl"
   },
   "license": {
     "type": "Public Domain",
     "url": "http://github.com/gf3/sandbox/raw/master/UNLICENSE"
   },
   "dependencies": {
-    "concat-stream": "^1.4.6"
+    "concat-stream": "^1.4.6",
+    "tar-fs": "^0.5.2",
+    "stream-parser": "~0.3.0"
   }
 }
