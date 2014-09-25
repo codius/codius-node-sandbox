@@ -53,20 +53,20 @@ Kill the Native Client child process. See [Node.js documentation](http://nodejs.
 
 Pipes the sandbox's `stdout` and `stderr` to the parent process' `stdout` and `stderr`, respectively.
 
-### `Sandbox.getStdout()`
+### `Sandbox.pipeStdout(destination)`
 
-Returns the sandbox's `stdout` stream.
+Set up the sandbox's `stdout` stream to be piped to the given destination when the child process is spawned. *Note that this must be called before `sandbox.run()`.*
 
 ```js
-sandbox.getStdout().pipe(process.stdout);
+sandbox.pipeStdout(process.stdout);
 ```
 
-### `Sandbox.getStderr()`
+### `Sandbox.pipeStderr(destination)`
 
-Returns the sandbox's `stderr` stream.
+Set up the sandbox's `stderr` stream to be piped to the given destination when the child process is spawned. *Note that this must be called before `sandbox.run()`.*
 
 ```js
-sandbox.getStderr().pipe(process.stderr);
+sandbox.pipeStderr(process.stdout);
 ```
 
 ### `Sandbox.setApi(apiHandler)`

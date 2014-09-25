@@ -39,7 +39,8 @@ function Sandbox(opts) {
 	self._timeout = opts.timeout || 1000;
 	self._enableGdb = opts.enableGdb || false;
 	self._enableValgrind = opts.enableValgrind || false;
-	self._passthrough_stdio = opts.passthroughStdio || false;
+	self._stdout_dest = (opts.passthroughStdio ? process.stdout : null);
+	self._stderr_dest = (opts.passthroughStdio ? process.stderr : null);
 
 	// Set when Sandbox.run is called
 	self._stdio = null;
@@ -72,15 +73,18 @@ Sandbox.prototype.run = function(file_path) {
 	});
 	self._stdio = self._native_client_child.stdio;
 
+	if (self._stdout_dest) {
+		self._stdio[1].pipe(self._stdout_dest);
+	}
+
+	if (self._stderr_dest) {
+		self._stdio[2].pipe(self._stderr_dest);
+	}
+
 	self._message_handler = new MessageHandler({
 		api: self._api,
 		stdio: self._stdio
 	});
-
-	if (self._passthrough_stdio) {
-		self._stdio[1].pipe(process.stdout);
-		self._stdio[2].pipe(process.stderr);
-	}
 
 };
 
@@ -130,21 +134,23 @@ Sandbox.prototype.passthroughStdio = function() {
 };
 
 /**
- * Returns the Native Client child process' stdout stream
+ * Set up the sandbox's `stdout` stream to be piped to 
+ * the given destination when the child process is spawned
  */
-Sandbox.prototype.getStdout = function() {
+Sandbox.prototype.pipeStdout = function(dest) {
 	var self = this;
 
-	return self._stdout[1]; 
+	self._stdout_dest = dest; 
 };
 
 /**
- * Returns the Native Client child process' stderr stream
+ * Set up the sandbox's `stderr` stream to be piped to 
+ * the given destination when the child process is spawned
  */
-Sandbox.prototype.getStderr = function() {
+Sandbox.prototype.pipeStderr = function(dest) {
 	var self = this;
 
-	return self._stdout[2]; 
+	self._stderr_dest = dest; 
 };
 
 module.exports = Sandbox;

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var concat = require('concat-stream');
 var Sandbox = require('../sandbox');
 var passthroughApi = require('../test/api/passthrough-api').passthroughApi;
 
@@ -11,9 +12,11 @@ if (typeof contract_filename !== 'string' || contract_filename.length < 1) {
 var sandbox = new Sandbox({
   api: passthroughApi,
   enableGdb: process.env.ENABLE_GDB || false,
-  enableValgrind: process.env.ENABLE_VALGRIND || false,
-  passthroughStdio: true
+  enableValgrind: process.env.ENABLE_VALGRIND || false
 });
+
+sandbox.pipeStdout(process.stdout);
+sandbox.pipeStderr(process.stderr);
 
 console.log('Running file in Codius sandbox: ' + contract_filename);
 sandbox.run(contract_filename);
