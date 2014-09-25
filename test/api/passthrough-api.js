@@ -5,6 +5,7 @@ var net = require('net');
 var crypto = require('crypto');
 var FakeSocket = require('./fake-socket').FakeSocket;
 
+var socket_connections = [null, null, null, null, null];
 
 function passthroughApi(message, callback) {
 	var args;
@@ -14,7 +15,7 @@ function passthroughApi(message, callback) {
 		args = message.data;
 	}
 
-  var method = (message.method || '').replace(/sync/i, '');
+  var method = (message.method || '').replace(/Sync$/, '');
 	
 	args.push(callback);
 
@@ -22,7 +23,7 @@ function passthroughApi(message, callback) {
     case 'fs':
       // Make absolute paths relative
       // (They are absolute from the perspect of the sandboxed code)
-      if (args[0].indexOf('/') === 0) {
+      if (typeof args[0] === 'string' && args[0].indexOf('/') === 0) {
         args[0] = '.' + args[0];
       }
       fs[method].apply(null, args);
@@ -35,8 +36,8 @@ function passthroughApi(message, callback) {
       switch (method) {
     		case 'socket':
     			sock = new FakeSocket(args[0], args[1], args[2]);
-      		var connectionId = this._connections.length;
-      		this._connections.push(sock);
+      		var connectionId = socket_connections.length;
+      		socket_connections.push(sock);
     			args[3](null, connectionId);
     			break;
         case 'write':
@@ -44,14 +45,14 @@ function passthroughApi(message, callback) {
             args[1] = new Buffer(args[1], "hex");
             args.splice(2, 1);
           }
-          sock = this._connections[args[0]];
+          sock = socket_connections[args[0]];
     			sock[method].apply(sock, args.slice(1));
           break;
         case 'connect':
         case 'read':
         case 'close':
           //TODO-CODIUS: If 'close', remove socket from _connections array
-    			sock = this._connections[args[0]];
+    			sock = socket_connections[args[0]];
     			sock[method].apply(sock, args.slice(1));
     			break;
     		default:
