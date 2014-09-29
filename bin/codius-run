@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+
+var concat = require('concat-stream');
+var Sandbox = require('../sandbox');
+var passthroughApi = require('../test/api/passthrough-api').passthroughApi;
+
+var contract_filename = process.argv[2];
+if (typeof contract_filename !== 'string' || contract_filename.length < 1) {
+  throw new Error('codius-run must be run with the filename of a contract to run');
+}
+
+var sandbox = new Sandbox({
+  api: passthroughApi,
+  enableGdb: process.env.ENABLE_GDB || false,
+  enableValgrind: process.env.ENABLE_VALGRIND || false
+});
+
+sandbox.pipeStdout(process.stdout);
+sandbox.pipeStderr(process.stderr);
+
+console.log('Running file in Codius sandbox: ' + contract_filename);
+sandbox.run(contract_filename);

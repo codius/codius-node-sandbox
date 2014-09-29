@@ -1,120 +1,99 @@
-# Node Sandbox
+# Codius Node Sandbox
 
-A nifty javascript sandbox for node.js.
+--> **This code is not yet ready for production use** <--
 
+A sandbox that combines Google's [Native Client](https://developer.chrome.com/native-client) with the [`codius/codius-lang-js`](https://github.com/codius/codius-lang-js) build of Node.js to run untrusted Javascript code.
 
-## Some features
+## Installation
 
-- Can be used to execute untrusted code.
-- Support for timeouts (e.g. prevent infinite loops)
-- Support for memory errors (and memory errors)
-- Handles errors gracefully
-- Restricted code (cannot access node.js methods)
-- Supports `console.log` and `print` utility methods
-- Supports interprocess (IPC) messaging with the sandboxed code
+`npm install`
 
+## Run a file inside the Sandbox
 
-## Example
+`bin/codius-run path/to/file.js`
 
-Be sure to check out [example/example.js](https://github.com/gf3/sandbox/blob/master/example/example.js)
+## API
 
-```javascript
-var s = new Sandbox();
-s.run('1 + 1 + " apples"', function(output) {
-  // output.result == "2 apples"
-});
-```
+### Instantiating a `new Sandbox`
 
+```js
+var Sandbox = require('codius-node-sandbox');
 
-## Documentation
+// This function defines how messages sent from inside
+// the sandbox will be handled. If no function is supplied
+// 
+function apiHandler(message, callback) {
+  var args = message.data.push(callback);
 
-### `Sandbox`#`run`(`code`, `callback`)
-
-* `code` {`String`} — string of Javascript to be executed.
-* `callback` {`Function`} — called after execution with two arguments, `error` and
-  `result`
-
-For example, given the following code:
-
-```javascript
-function add(a, b){
-  console.log(a);
-  console.log(b);
-  return a + b;
+  switch(message.api) {
+    case 'fs':
+      switch(message.method) {
+        case 'readFile':
+          fs.readFile.apply(null, args);
+          break;
+      }
+    break;
+  }
 }
 
-add(20, 22);
-```
-
-The callback will be called with `(null, '42')`
-
-
-### `Sandbox`#`postMessage`(`message`)
-
-* `message` {`String`} - message to send to the sandboxed code
-
-For example, the following code will send a message from outside of the sandbox in
-and then the sandboxed code will respond with its own message. Note that the sandboxed
-code handles incoming messages by defining a global `onmessage` function and can
-send messages to the outside using the `postMessage` function.
-
-Sandboxed code:
-```javascript
-onmessage = function(message){
-  if (message === 'hello from outside') {
-    postMessage('hello from inside');
-  }
-};
-```
-
-Sandbox:
-```
-var sandbox = new Sandbox();
-sandbox.run(sandboxed_code);
-sandbox.on('message', function(message){
-  // Handle message sent from the inside
-  // In this example message will be 'hello from inside'
+var sandbox = new Sandbox({
+  api: apiHandler
 });
-sandbox.postMessage('hello from outside');
 ```
 
-The process will ONLY be considered finished if `onmessage` is NOT a function or
-`process.exit()` is called. If `onmessage` is defined the sandbox will assume that
-it is waiting for an incoming message. Note, however, that the timeout will still
-cause asynchronous sandboxed code to result in a `TimeoutError` if it takes too long.
+### `Sandbox.run(file_path)`
+
+Spawn a new Native Client sandbox as a child process to run the given Node.js file.
+
+### `Sandbox.kill(message)`
+
+Kill the Native Client child process. See [Node.js documentation](http://nodejs.org/api/child_process.html#child_process_child_kill_signal) for more info.
+
+### `Sandbox.passthroughStdio()`
+
+Pipes the sandbox's `stdout` and `stderr` to the parent process' `stdout` and `stderr`, respectively.
+
+### `Sandbox.pipeStdout(destination)`
+
+Set up the sandbox's `stdout` stream to be piped to the given destination when the child process is spawned. *Note that this must be called before `sandbox.run()`.*
+
+```js
+sandbox.pipeStdout(process.stdout);
+```
+
+### `Sandbox.pipeStderr(destination)`
+
+Set up the sandbox's `stderr` stream to be piped to the given destination when the child process is spawned. *Note that this must be called before `sandbox.run()`.*
+
+```js
+sandbox.pipeStderr(process.stdout);
+```
+
+### `Sandbox.setApi(apiHandler)`
+
+Set the function that will handle the sandbox's API calls
 
 
-## Installation & Running
+## Messages in/out of the Sandbox
 
-Let's get it! The easiest way is through npm:
+All of the standard Node.js functionality should work inside the Sandbox.
 
-    npm install sandbox
+The following describes how to define a new API and allow the sandboxed code to communicate with it.
 
-Or if you'd like to play with the code, see the examples, run the tests,
-what-the-fuck-ever...
+From inside the sandbox:
+```js
+var codius = process.binding('async');
+var message = {
+  type: 'api',
+  api: 'fs',
+  method: 'readFile',
+  data: [ 'sandbox.js' ]
+};
 
-    git clone git://github.com/gf3/sandbox.git
+codius.postMessage(JSON.stringify(message), function(error, result){
+  // handle error and result
+});
+```
 
-And run some examples:
+All messages whose type is `api` will be passed through to the `apiHandler` function supplied to the Sandbox when it is instantiated (see above).
 
-    node example/example.js
-
-
-## Tests
-
-To run the tests simply run the test file with node.
-
-    npm test
-
-
-## License
-
-Sandbox is [UNLICENSED](http://unlicense.org/).
-
-
-## Contributors
-
-- [Gianni Chiappetta](http://github.com/gf3) – [gf3.ca](http://gf3.ca)
-- [Bradley Meck](https://github.com/bmeck)
-- [Dominic Tarr](http://github.com/dominictarr) – [cyber-hobo.blogspot.com](http://cyber-hobo.blogspot.com/)
-- [Eli Mallon](https://github.com/iameli) – [iame.li](http://iame.li/)

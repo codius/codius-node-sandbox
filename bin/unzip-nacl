@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+var path = require('path');
+var zlib = require('zlib');
+var tar = require('tar-fs');
+var fs = require('fs');
+
+fs.createReadStream(path.resolve(__dirname, '../deps/nacl_x86_32.tar.gz'))
+  .pipe(zlib.Unzip())
+  .pipe(tar.extract(path.resolve(__dirname, '../deps')));
+
