@@ -14,7 +14,7 @@ createServer(port, CONTRACT_PRIVKEY);
 
 function createServer(PORT, CONTRACT_PRIVKEY) {
 
-	var HOST = '127.0.0.1';
+	var HOST = '0.0.0.0';
 
 	function responseHandler(req, res){
 		req.pipe(concat(function(data){
