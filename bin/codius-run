@@ -17,7 +17,7 @@ var sandbox = new Sandbox({
 });
 
 sandbox.pipeStdout(process.stdout);
-sandbox.pipeStderr(process.stderr);
+// sandbox.pipeStderr(process.stderr);
 
 console.log('Running file in Codius sandbox: ' + contract_filename);
 sandbox.run(contract_filename);
