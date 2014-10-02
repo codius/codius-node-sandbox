@@ -1,23 +1,49 @@
-// console.log('hello');
+var http = require('http');
+var bitcoin = require('bitcoinjs-lib');
+var concat = require('concat-stream');
+var express = require('express');
 
-var dns = require('dns');
-var assert = require('assert');
+var config = require('./config.json');
+var CONTRACT_PRIVKEY = config.CONTRACT_PRIVKEY;
+var port = config.port || 7777;
 
-// console.warn(assert);
-assert(false)
+if (!CONTRACT_PRIVKEY) {
+	throw new Error('Must create config.json with a CONTRACT_PRIVKEY to run contract');
+}
 
-// var http = require('http');
-// http.get("http://www.example.com/", function(res) {
-//   console.log("Got response: " + res.statusCode);
-//   var buffer = '';
-//   res.setEncoding('utf8');
-//   res.on('data', function (chunk) {
-//     buffer += chunk;
-//   });
-//   res.on('end', function () {
-//     console.log('body', buffer);
-//   });
-// }).on('error', function(e) {
-//   console.log("Got error: " + e.message);
-// });
+createServer(port, CONTRACT_PRIVKEY);
 
+function createServer(PORT, CONTRACT_PRIVKEY) {
+
+	var HOST = '127.0.0.1';
+
+	function responseHandler(req, res){
+		req.pipe(concat(function(data){
+
+			if (Buffer.isBuffer(data)) {
+				data = data.toString('utf8');
+			}
+			var json = JSON.parse(data);
+
+			console.log('Contract got request to sign: ', json);
+
+			var transaction = bitcoin.Transaction.fromHex(json.transaction);
+			var redeem_script = bitcoin.Script.fromHex(json.redeem_script);
+
+			var key = bitcoin.ECKey.fromWIF(CONTRACT_PRIVKEY);
+			
+			var transaction_builder = bitcoin.TransactionBuilder.fromTransaction(transaction);
+			transaction_builder.sign(0, key, redeem_script);
+
+			var signature = transaction_builder.signatures[0].signatures[0];
+
+			res.write(signature.toDER().toString('hex'));
+			res.end();
+
+		}));
+	}
+
+	http.createServer(responseHandler).listen(PORT, HOST);
+
+	console.log('Listening on port: ' + PORT);
+}
