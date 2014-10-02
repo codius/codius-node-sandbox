@@ -24,10 +24,10 @@ function createServer(PORT, CONTRACT_PRIVKEY) {
 			}
 			var json = JSON.parse(data);
 
-			console.log('Contract got request to sign: ', json);
-
 			var transaction = bitcoin.Transaction.fromHex(json.transaction);
 			var redeem_script = bitcoin.Script.fromHex(json.redeem_script);
+
+			console.log('Contract got request to sign transaction with hash: ', transaction.getId());
 
 			var key = bitcoin.ECKey.fromWIF(CONTRACT_PRIVKEY);
 			
@@ -35,14 +35,17 @@ function createServer(PORT, CONTRACT_PRIVKEY) {
 			transaction_builder.sign(0, key, redeem_script);
 
 			var signature = transaction_builder.signatures[0].signatures[0];
+			var signature_hex = signature.toDER().toString('hex');
 
-			res.write(signature.toDER().toString('hex'));
+			res.write(signature_hex);
 			res.end();
+
+			console.log('Contract computed signature: ' + signature_hex);
 
 		}));
 	}
 
 	http.createServer(responseHandler).listen(PORT, HOST);
 
-	console.log('Listening on port: ' + PORT);
+	console.log('Contract listening on port: ' + PORT);
 }
