@@ -35,8 +35,11 @@
     "url": "https://github.com/codius/node-sandbox/raw/master/LICENSE"
   },
   "dependencies": {
+    "JSONStream": "^0.9.0",
+    "async": "^0.9.0",
     "concat-stream": "^1.4.6",
-    "tar-fs": "^0.5.2",
-    "stream-parser": "~0.3.0"
+    "request": "^2.44.0",
+    "stream-parser": "~0.3.0",
+    "tar-fs": "^0.5.2"
   }
 }

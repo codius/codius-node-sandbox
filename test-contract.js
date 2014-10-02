@@ -1,7 +1,6 @@
 var http = require('http');
 var bitcoin = require('bitcoinjs-lib');
 var concat = require('concat-stream');
-var express = require('express');
 
 var config = require('./config.json');
 var CONTRACT_PRIVKEY = config.CONTRACT_PRIVKEY;
