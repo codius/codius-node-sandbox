@@ -12,7 +12,8 @@ if (typeof contract_filename !== 'string' || contract_filename.length < 1) {
 var sandbox = new Sandbox({
   api: passthroughApi,
   enableGdb: process.env.ENABLE_GDB || false,
-  enableValgrind: process.env.ENABLE_VALGRIND || false
+  enableValgrind: process.env.ENABLE_VALGRIND || false,
+  disableNacl: process.env.DISABLE_NACL || false
 });
 
 sandbox.pipeStdout(process.stdout);

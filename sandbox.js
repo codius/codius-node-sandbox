@@ -6,10 +6,10 @@ var EventEmitter = require('events').EventEmitter;
 var MessageHandler = require('./lib/message-handler').MessageHandler;
 
 // TODO: Make these configurable
-var NACL_SDK_ROOT = process.env.NACL_SDK_ROOT || path.resolve(__dirname, 'deps/nacl_sdk/pepper_35');
+var NACL_SDK_ROOT = process.env.NACL_SDK_ROOT || path.resolve(__dirname, 'deps/nacl/nacl_sdk/pepper_35');
 var RUN_CONTRACT_COMMAND = path.resolve(NACL_SDK_ROOT, 'tools/sel_ldr_x86_32');
 var RUN_CONTRACT_LIBS = [
-	path.resolve(__dirname, 'deps/v8/out/nacl_ia32.release/lib.target'),
+	path.resolve(__dirname, 'deps/nacl/v8/out/nacl_ia32.release/lib.target'),
 	path.resolve(NACL_SDK_ROOT, 'toolchain/linux_x86_glibc/x86_64-nacl/lib32'),
 ];
 var RUN_CONTRACT_ARGS = [
@@ -22,7 +22,14 @@ var RUN_CONTRACT_ARGS = [
   path.resolve(NACL_SDK_ROOT, 'toolchain/linux_x86_glibc/x86_64-nacl/lib32/runnable-ld.so'), 
   '--library-path', 
   RUN_CONTRACT_LIBS.join(':'),
-  path.resolve(__dirname, 'deps/codius_node.nexe')
+  path.resolve(__dirname, 'deps/nacl/codius_node.nexe')
+];
+
+var RUN_CONTRACT_DISABLE_NACL_COMMAND = path.resolve(__dirname, 'deps/seccomp/codius_node');
+var RUN_CONTRACT_DISABLE_NACL_LIBS = [ path.resolve(__dirname, 'deps/seccomp/libv8.so') ];
+var RUN_CONTRACT_DISABLE_NACL_ARGS = [
+  '--library-path', 
+  RUN_CONTRACT_LIBS.join(':'),
 ];
 
 /**
@@ -39,6 +46,7 @@ function Sandbox(opts) {
 	self._timeout = opts.timeout || 1000;
 	self._enableGdb = opts.enableGdb || false;
 	self._enableValgrind = opts.enableValgrind || false;
+	self._disableNacl = opts.disableNacl || false;
 	self._stdout_dest = (opts.passthroughStdio ? process.stdout : null);
 	self._stderr_dest = (opts.passthroughStdio ? process.stderr : null);
 
@@ -91,8 +99,12 @@ Sandbox.prototype.run = function(file_path) {
 Sandbox.prototype._spawnChildToRunCode = function (file_path) {
 	var self = this;
 
-	var cmd = RUN_CONTRACT_COMMAND;
-	var args = RUN_CONTRACT_ARGS.slice();
+	if (self._disableNacl) {
+		console.warn('NaCl is disabled');
+	}
+
+	var cmd = (self._disableNacl ? RUN_CONTRACT_DISABLE_NACL_COMMAND : RUN_CONTRACT_COMMAND);
+	var args = (self._disableNacl ? RUN_CONTRACT_DISABLE_NACL_ARGS.slice() : RUN_CONTRACT_ARGS.slice());
 	args.push(file_path);
 	
 	if (self._enableGdb) {
