@@ -51,7 +51,7 @@ function createServer(PORT, CONTRACT_PRIVKEY) {
 
 	http.createServer(responseHandler).listen(PORT, HOST);
 
-	console.log('Contract listening on port: ' + PORT);
+	console.log('Contract listening on port: ' + PORT + '\n');
 
 	console.log('Welcome to the ...');
 
