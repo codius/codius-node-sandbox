@@ -40,6 +40,25 @@ function passthroughApi(message, callback) {
       		socket_connections.push(sock);
     			args[3](null, connectionId);
     			break;
+        case 'accept':
+          sock = socket_connections[args[0]];
+          var peer = sock.accept();
+          if (peer) {
+            var peer_sock = new FakeSocket(FakeSocket.AF_INET, FakeSocket.SOCK_STREAM, 0);
+            peer_sock._socket = peer;
+            peer_sock._socket.on('data', function(data) {
+              peer_sock._buffer.push(data);
+            });
+            peer_sock._socket.on('end', function () {
+              peer_sock._eof = true;
+            });
+            var connectionId = socket_connections.length;
+            socket_connections.push(peer_sock);
+            callback(null, connectionId);
+          } else {
+            // EAGAIN (no data, try again later)
+            callback(null, -11);
+          }
         case 'write':
           if (args[2]==="hex") {
             args[1] = new Buffer(args[1], "hex");
@@ -51,6 +70,7 @@ function passthroughApi(message, callback) {
         case 'connect':
         case 'read':
         case 'close':
+        case 'bind':
           //TODO-CODIUS: If 'close', remove socket from _connections array
     			sock = socket_connections[args[0]];
     			sock[method].apply(sock, args.slice(1));

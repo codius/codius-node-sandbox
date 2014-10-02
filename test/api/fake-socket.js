@@ -15,6 +15,7 @@ var FakeSocket = function (domain, type, protocol) {
   
   this._socket = null;
   this._buffer = [];
+  this._sockets_to_accept = [];
   this._eof = false;
 }
 
@@ -58,6 +59,44 @@ FakeSocket.prototype.connect = function (family, address, port, callback) {
   self._socket.on('error', function(error){
     console.log('socket error: ', error);
   });
+};
+
+FakeSocket.prototype.bind = function (family, address, port, callback) {
+  var self = this;
+
+  if (family != FakeSocket.AF_INET) {
+    throw new Error("Unsupported socket family: "+family);
+  }
+
+  var addressArray = [
+    address       & 0xff,
+    address >>  8 & 0xff,
+    address >> 16 & 0xff,
+    address >> 24 & 0xff
+  ];
+  
+  // Convert endianness
+  port = (port >> 8 & 0xff) + (port << 8 & 0xffff);
+
+  self._socket=net.createServer(function(sock) {
+    self._socket.on('error', function(error){
+      console.log('socket error: ', error);
+    });
+
+    // We have a connection - a socket object will be assigned to the connection with accept()
+    self._sockets_to_accept.push(sock);
+
+    // console.log('Fake socket server connected to: ' + sock.remoteAddress +':'+ sock.remotePort);
+      
+  }).listen(port, addressArray.join('.'));
+
+  callback(null, 0);
+};
+
+FakeSocket.prototype.accept = function() {
+  var self = this;
+
+  return self._sockets_to_accept.shift();
 };
 
 FakeSocket.prototype.read = function (maxBytes, callback) {
