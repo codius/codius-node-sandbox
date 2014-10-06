@@ -1,8 +1,8 @@
 {
   "name": "codius-node-sandbox",
   "description": "A sandbox that combines Google's Native Client with the codius/codius-lang-js build of Node.js to run untrusted Javascript code.",
-  "homepage": "https://github.com/codius/node-sandbox",
-  "bugs": "https://github.com/codius/node-sandbox/issues",
+  "homepage": "https://github.com/codius/codius-node-sandbox",
+  "bugs": "https://github.com/codius/codius-node-sandbox/issues",
   "contributors": [
     "Evan Schwartz <evan@ripple.com>",
     "Stefan Thomas <stefan@ripple.com>",
@@ -25,14 +25,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/codius/node-sandbox.git"
+    "url": "https://github.com/codius/codius-node-sandbox.git"
   },
   "scripts": {
     "postinstall": "bin/unzip-nacl"
   },
   "license": {
     "type": "Public Domain",
-    "url": "https://github.com/codius/node-sandbox/raw/master/LICENSE"
+    "url": "https://github.com/codius/codius-node-sandbox/raw/master/LICENSE"
   },
   "dependencies": {
     "concat-stream": "^1.4.6",
