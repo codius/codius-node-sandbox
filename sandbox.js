@@ -52,11 +52,12 @@ function Sandbox(opts) {
 
 	// Set when Sandbox.run is called
 	self._stdio = null;
-	self._message_handler = null;
+	self._message_handler = new MessageHandler({
+		api: self._api
+	});;
 	self._native_client_child = null;
 
 }
-util.inherits(Sandbox, EventEmitter);
 
 /**
  *	Set the API
@@ -71,13 +72,15 @@ Sandbox.prototype.setApi = function(api) {
  *
  * @param {String} file_path
  */
-Sandbox.prototype.run = function(file_path) {
+Sandbox.prototype.run = function(file_path, callback) {
 	var self = this;
 
 	// Create new sandbox
 	self._native_client_child = self._spawnChildToRunCode(file_path);
 	self._native_client_child.on('exit', function(code){
-		self.emit('exit', code);
+		if (typeof callback === 'function') {
+			callback();
+		} 
 	});
 	self._stdio = self._native_client_child.stdio;
 
@@ -89,10 +92,7 @@ Sandbox.prototype.run = function(file_path) {
 		self._stdio[2].pipe(self._stderr_dest);
 	}
 
-	self._message_handler = new MessageHandler({
-		api: self._api,
-		stdio: self._stdio
-	});
+	self._message_handler.setupStdio(self._stdio);
 
 };
 
@@ -142,7 +142,8 @@ Sandbox.prototype.kill = function(message){
 Sandbox.prototype.passthroughStdio = function() {
 	var self = this;
 
-	self._passthrough_stdio = true;
+	self._stdout_dest = process.stdout;
+	self._stderr_dest = process.stderr;
 };
 
 /**
