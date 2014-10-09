@@ -6,7 +6,13 @@ A sandbox that combines Google's [Native Client](https://developer.chrome.com/na
 
 ## Installation
 
-`npm install`
+On 64-bit systems you need to have 32-bit libc and libstdc++ installed. On Ubuntu, run:
+
+``` sh
+sudo apt-get install libc6-i386 lib32stdc++6
+```
+
+The module itself is usually used as a dependency, but you can install it by cloning this repository and installing dependencies by running `npm install`.
 
 ## Run a file inside the Sandbox
 
