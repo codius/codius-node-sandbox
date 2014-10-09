@@ -119,7 +119,25 @@ Sandbox.prototype._spawnChildToRunCode = function (file_path) {
 
 	var child = spawn(cmd, args, { stdio: [ 'pipe', 'pipe', 'pipe', 'pipe',  'pipe' ] });
 
-	return child;
+  child.on('error', self._handleChildProcessError.bind(self));
+
+  return child;
+};
+
+/**
+ * Handle child process errors and try to give a little bit better error information.
+ */
+Sandbox.prototype._handleChildProcessError = function (err) {
+  // TODO Should this handle the error? Pass it on as an event?
+  if (err.code === 'ENOENT') {
+    // TODO Error information could be further improved, check whether libc is there etc.
+    console.log('ENOENT: The child process was unable to spawn.');
+    if (process.arch === 'x64') {
+      console.error('Note that on x64 architectures you need to install the 32-bit versions of libc and libstdc++.');
+    }
+  } else {
+    throw err;
+  }
 };
 
 /**
