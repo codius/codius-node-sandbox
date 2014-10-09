@@ -5,7 +5,19 @@ var zlib = require('zlib');
 var tar = require('tar-fs');
 var fs = require('fs');
 
+// Extract dependency tarball
 fs.createReadStream(path.resolve(__dirname, '../deps/nacl/nacl_x86_32.tar.gz'))
   .pipe(zlib.Unzip())
-  .pipe(tar.extract(path.resolve(__dirname, '../deps/nacl')));
+  .pipe(tar.extract(path.resolve(__dirname, '../deps/nacl')))
+  .on('end', function () {
+    // Set correct file permissions
+    fs.chmod(path.resolve(__dirname, '../deps/nacl/nacl_sdk/pepper_35/tools/sel_ldr_x86_32'), 0755, function () {
+      if (error) {
+        console.error(error);
+        process.exit(1);
+      } else {
+        process.exit(0);
+      }
+    });
+  });
 
