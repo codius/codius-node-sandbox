@@ -20,4 +20,4 @@ sandbox.pipeStdout(process.stdout);
 sandbox.pipeStderr(process.stderr);
 
 console.log('Running file in Codius sandbox: ' + contract_filename);
-sandbox.run(contract_filename);
+sandbox.run(contract_filename, { env: process.env });

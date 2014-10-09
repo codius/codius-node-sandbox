@@ -26,11 +26,7 @@ var RUN_CONTRACT_ARGS = [
 ];
 
 var RUN_CONTRACT_DISABLE_NACL_COMMAND = path.resolve(__dirname, 'deps/seccomp/codius_node');
-var RUN_CONTRACT_DISABLE_NACL_LIBS = [ path.resolve(__dirname, 'deps/seccomp/libv8.so') ];
-var RUN_CONTRACT_DISABLE_NACL_ARGS = [
-  '--library-path', 
-  RUN_CONTRACT_LIBS.join(':'),
-];
+var RUN_CONTRACT_DISABLE_NACL_ARGS = [ ];
 
 /**
  * Sandbox class wrapper around Native Client
@@ -72,11 +68,16 @@ Sandbox.prototype.setApi = function(api) {
  *
  * @param {String} file_path
  */
-Sandbox.prototype.run = function(file_path, callback) {
+Sandbox.prototype.run = function(file_path, opts, callback) {
 	var self = this;
 
+	if (typeof opts === 'function') {
+		callback = opts;
+		opts = {};
+	}
+
 	// Create new sandbox
-	self._native_client_child = self._spawnChildToRunCode(file_path);
+	self._native_client_child = self._spawnChildToRunCode(file_path, opts.env);
 	self._native_client_child.on('exit', function(code){
 		if (typeof callback === 'function') {
 			callback();
@@ -96,7 +97,7 @@ Sandbox.prototype.run = function(file_path, callback) {
 
 };
 
-Sandbox.prototype._spawnChildToRunCode = function (file_path) {
+Sandbox.prototype._spawnChildToRunCode = function (file_path, env) {
 	var self = this;
 
 	if (self._disableNacl) {
@@ -117,7 +118,10 @@ Sandbox.prototype._spawnChildToRunCode = function (file_path) {
 		cmd = 'valgrind';
 	}
 
-	var child = spawn(cmd, args, { stdio: [ 'pipe', 'pipe', 'pipe', 'pipe',  'pipe' ] });
+	var child = spawn(cmd, args, {
+		env: env,
+		stdio: [ 'pipe', 'pipe', 'pipe', 'pipe',  'pipe' ] 
+	});
 
   child.on('error', self._handleChildProcessError.bind(self));
 
