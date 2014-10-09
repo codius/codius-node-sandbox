@@ -1,6 +1,4 @@
 *.swp
 node_modules
-deps/nacl
-!deps/nacl/nacl_x86_32.tar.gz
 
 

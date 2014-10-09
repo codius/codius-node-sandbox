@@ -27,9 +27,6 @@
     "type": "git",
     "url": "https://github.com/codius/node-sandbox.git"
   },
-  "scripts": {
-    "postinstall": "bin/unzip-nacl"
-  },
   "license": {
     "type": "Public Domain",
     "url": "https://github.com/codius/node-sandbox/raw/master/LICENSE"
