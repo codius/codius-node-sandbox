@@ -76,6 +76,8 @@ Sandbox.prototype.run = function(file_path, opts, callback) {
 		opts = {};
 	}
 
+    opts = opts || {};
+
 	// Create new sandbox
 	self._native_client_child = self._spawnChildToRunCode(file_path, opts.env);
 	self._native_client_child.on('exit', function(code){
