@@ -26,6 +26,7 @@ var RUN_CONTRACT_ARGS = [
 ];
 
 var RUN_CONTRACT_DISABLE_NACL_COMMAND = path.resolve(__dirname, 'deps/seccomp/codius_node');
+var RUN_CONTRACT_DISABLE_NACL_COMMAND_DEBUG = path.resolve(__dirname, 'deps/seccomp/codius_node_g');
 var RUN_CONTRACT_DISABLE_NACL_ARGS = [ ];
 
 /**
@@ -100,30 +101,31 @@ Sandbox.prototype.run = function(file_path, opts, callback) {
 };
 
 Sandbox.prototype._spawnChildToRunCode = function (file_path, env) {
-	var self = this;
+  var self = this;
 
-	if (self._disableNacl) {
-		console.warn('NaCl is disabled');
-	}
+  if (self._disableNacl) {
+    console.warn('NaCl is disabled');
+  }
 
-	var cmd = (self._disableNacl ? RUN_CONTRACT_DISABLE_NACL_COMMAND : RUN_CONTRACT_COMMAND);
-	var args = (self._disableNacl ? RUN_CONTRACT_DISABLE_NACL_ARGS.slice() : RUN_CONTRACT_ARGS.slice());
-	args.push(file_path);
-	
-	if (self._enableGdb) {
-		args.unshift(cmd);
-		args.unshift('localhost:4484');
-		cmd = 'gdbserver';
-	} else if (self._enableValgrind) {
-		args.unshift('--');
-		args.unshift(cmd);
-		cmd = 'valgrind';
-	}
+  var cmd = (self._disableNacl ? RUN_CONTRACT_DISABLE_NACL_COMMAND : RUN_CONTRACT_COMMAND);
+  var args = (self._disableNacl ? RUN_CONTRACT_DISABLE_NACL_ARGS.slice() : RUN_CONTRACT_ARGS.slice());
+  args.push(file_path);
 
-	var child = spawn(cmd, args, {
-		env: env,
-		stdio: [ 'pipe', 'pipe', 'pipe', 'pipe',  'pipe' ] 
-	});
+  if (self._enableGdb) {
+    cmd = RUN_CONTRACT_DISABLE_NACL_COMMAND_DEBUG;
+    args.unshift(cmd);
+    args.unshift('localhost:4484');
+    cmd = 'gdbserver';
+  } else if (self._enableValgrind) {
+    args.unshift('--');
+    args.unshift(cmd);
+    cmd = 'valgrind';
+  }
+
+  var child = spawn(cmd, args, {
+    env: env,
+    stdio: [ 'pipe', 'pipe', 'pipe', 'pipe',  'pipe' ]
+  });
 
   child.on('error', self._handleChildProcessError.bind(self));
 
