@@ -105,15 +105,29 @@ Sandbox.prototype.run = function(file_path, opts, callback) {
 
 };
 
-Sandbox.prototype._spawnChildToRunCode = function (file_path, env) {
+Sandbox.prototype._spawnChildToRunCode = function (file_path, envVars) {
   var self = this;
 
   if (self._disableNacl) {
     console.warn('NaCl is disabled');
   }
 
-  var cmd = (self._disableNacl ? RUN_CONTRACT_DISABLE_NACL_COMMAND : RUN_CONTRACT_COMMAND);
-  var args = (self._disableNacl ? RUN_CONTRACT_DISABLE_NACL_ARGS.slice() : RUN_CONTRACT_ARGS.slice());
+	var cmd, args, env;
+	if (self._disableNacl) {
+		cmd = RUN_CONTRACT_DISABLE_NACL_COMMAND;
+		args = RUN_CONTRACT_DISABLE_NACL_ARGS.slice();
+		env = envVars;
+	} else {
+		cmd = RUN_CONTRACT_COMMAND;
+		args = RUN_CONTRACT_ARGS.slice();
+
+		// To pass in environment variables via sel_ldr, we need to prefix them with
+		// 'NACLENV_'.
+		env = {};
+		Object.keys(envVars).forEach(function (key) {
+			env['NACLENV_'+key] = envVars[key];
+		});
+	}
   args.push(file_path);
 
   if (self._enableGdb) {
