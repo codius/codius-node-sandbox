@@ -27,7 +27,7 @@ var Sandbox = require('codius-node-sandbox');
 
 // This function defines how messages sent from inside
 // the sandbox will be handled. If no function is supplied
-// 
+//
 function apiHandler(message, callback) {
   var args = message.data.push(callback);
 
@@ -79,6 +79,14 @@ sandbox.pipeStderr(process.stdout);
 
 Set the function that will handle the sandbox's API calls
 
+### Event `'exit'`
+
+* `code` *Number* - The exit code, if it exited normally.
+* `signal` *String* - The signal passed to kill the child process, if it was killed by the parent.
+
+This event is emitted after the child process ends. If the process terminated normally, `code` is the final exit code of the process, otherwise `null`. If the process terminated due to receipt of a signal, `signal` is the string name of the signal, otherwise `null`.
+
+Note that the child process stdio streams might still be open.
 
 ## Messages in/out of the Sandbox
 
@@ -102,4 +110,3 @@ codius.postMessage(JSON.stringify(message), function(error, result){
 ```
 
 All messages whose type is `api` will be passed through to the `apiHandler` function supplied to the Sandbox when it is instantiated (see above).
-

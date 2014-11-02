@@ -13,14 +13,14 @@ var RUN_CONTRACT_LIBS = [
 	path.resolve(NACL_SDK_ROOT, 'toolchain/linux_x86_glibc/x86_64-nacl/lib32'),
 ];
 var RUN_CONTRACT_ARGS = [
-  '-h', 
-  '3:3', 
+  '-h',
+  '3:3',
   '-h',
   '4:4',
-  '-a', 
-  '--', 
-  path.resolve(NACL_SDK_ROOT, 'toolchain/linux_x86_glibc/x86_64-nacl/lib32/runnable-ld.so'), 
-  '--library-path', 
+  '-a',
+  '--',
+  path.resolve(NACL_SDK_ROOT, 'toolchain/linux_x86_glibc/x86_64-nacl/lib32/runnable-ld.so'),
+  '--library-path',
   RUN_CONTRACT_LIBS.join(':'),
   path.resolve(__dirname, 'deps/nacl/codius_node.nexe')
 ];
@@ -33,8 +33,10 @@ var RUN_CONTRACT_DISABLE_NACL_ARGS = [ ];
  * Sandbox class wrapper around Native Client
  */
 function Sandbox(opts) {
+	EventEmitter.call(this);
+
 	var self = this;
-	
+
 	if (!opts) {
 		opts = {};
 	}
@@ -55,6 +57,8 @@ function Sandbox(opts) {
 	self._native_client_child = null;
 
 }
+
+util.inherits(Sandbox, EventEmitter);
 
 /**
  *	Set the API
@@ -81,10 +85,11 @@ Sandbox.prototype.run = function(file_path, opts, callback) {
 
 	// Create new sandbox
 	self._native_client_child = self._spawnChildToRunCode(file_path, opts.env);
-	self._native_client_child.on('exit', function(code){
+	self._native_client_child.on('exit', function(code, signal) {
 		if (typeof callback === 'function') {
 			callback();
-		} 
+		}
+		self.emit('exit', code, signal);
 	});
 	self._stdio = self._native_client_child.stdio;
 
@@ -162,7 +167,7 @@ Sandbox.prototype.kill = function(message){
 };
 
 /**
- * Pipe Native Client stdout and stderr to 
+ * Pipe Native Client stdout and stderr to
  * the parent process' stdout and stderr
  */
 Sandbox.prototype.passthroughStdio = function() {
@@ -173,23 +178,23 @@ Sandbox.prototype.passthroughStdio = function() {
 };
 
 /**
- * Set up the sandbox's `stdout` stream to be piped to 
+ * Set up the sandbox's `stdout` stream to be piped to
  * the given destination when the child process is spawned
  */
 Sandbox.prototype.pipeStdout = function(dest) {
 	var self = this;
 
-	self._stdout_dest = dest; 
+	self._stdout_dest = dest;
 };
 
 /**
- * Set up the sandbox's `stderr` stream to be piped to 
+ * Set up the sandbox's `stderr` stream to be piped to
  * the given destination when the child process is spawned
  */
 Sandbox.prototype.pipeStderr = function(dest) {
 	var self = this;
 
-	self._stderr_dest = dest; 
+	self._stderr_dest = dest;
 };
 
 module.exports = Sandbox;
