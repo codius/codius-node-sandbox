@@ -1,4 +1,3 @@
-var fs = require('fs');
 var spawn = require('child_process').spawn;
 var util = require('util');
 var path = require('path');
@@ -9,8 +8,8 @@ var MessageHandler = require('./lib/message-handler').MessageHandler;
 var NACL_SDK_ROOT = process.env.NACL_SDK_ROOT || path.resolve(__dirname, 'deps/nacl/nacl_sdk/pepper_35');
 var RUN_CONTRACT_COMMAND = path.resolve(NACL_SDK_ROOT, 'tools/sel_ldr_x86_32');
 var RUN_CONTRACT_LIBS = [
-	path.resolve(__dirname, 'deps/nacl/v8/out/nacl_ia32.release/lib.target'),
-	path.resolve(NACL_SDK_ROOT, 'toolchain/linux_x86_glibc/x86_64-nacl/lib32'),
+  path.resolve(__dirname, 'deps/nacl/v8/out/nacl_ia32.release/lib.target'),
+  path.resolve(NACL_SDK_ROOT, 'toolchain/linux_x86_glibc/x86_64-nacl/lib32'),
 ];
 var RUN_CONTRACT_ARGS = [
   '-h',
@@ -33,39 +32,39 @@ var RUN_CONTRACT_DISABLE_NACL_ARGS = [ ];
  * Sandbox class wrapper around Native Client
  */
 function Sandbox(opts) {
-	EventEmitter.call(this);
+  EventEmitter.call(this);
 
-	var self = this;
+  var self = this;
 
-	if (!opts) {
-		opts = {};
-	}
+  if (!opts) {
+    opts = {};
+  }
 
-	self._api = opts.api;
-	self._timeout = opts.timeout || 1000;
-	self._enableGdb = opts.enableGdb || false;
-	self._enableValgrind = opts.enableValgrind || false;
-	self._disableNacl = opts.disableNacl || false;
-	self._stdout_dest = (opts.passthroughStdio ? process.stdout : null);
-	self._stderr_dest = (opts.passthroughStdio ? process.stderr : null);
+  self._api = opts.api;
+  self._timeout = opts.timeout || 1000;
+  self._enableGdb = opts.enableGdb || false;
+  self._enableValgrind = opts.enableValgrind || false;
+  self._disableNacl = opts.disableNacl || false;
+  self._stdout_dest = (opts.passthroughStdio ? process.stdout : null);
+  self._stderr_dest = (opts.passthroughStdio ? process.stderr : null);
 
-	// Set when Sandbox.run is called
-	self._stdio = null;
-	self._message_handler = new MessageHandler({
-		api: self._api
-	});;
-	self._native_client_child = null;
+  // Set when Sandbox.run is called
+  self._stdio = null;
+  self._message_handler = new MessageHandler({
+    api: self._api
+  });;
+  self._native_client_child = null;
 
 }
 
 util.inherits(Sandbox, EventEmitter);
 
 /**
- *	Set the API
+ *  Set the API
  */
 Sandbox.prototype.setApi = function(api) {
-	var self = this;
-	self._message_handler.setApi(api);
+  var self = this;
+  self._message_handler.setApi(api);
 };
 
 /**
@@ -74,34 +73,34 @@ Sandbox.prototype.setApi = function(api) {
  * @param {String} file_path
  */
 Sandbox.prototype.run = function(file_path, opts, callback) {
-	var self = this;
+  var self = this;
 
-	if (typeof opts === 'function') {
-		callback = opts;
-		opts = {};
-	}
+  if (typeof opts === 'function') {
+    callback = opts;
+    opts = {};
+  }
 
     opts = opts || {};
 
-	// Create new sandbox
-	self._native_client_child = self._spawnChildToRunCode(file_path, opts.env);
-	self._native_client_child.on('exit', function(code, signal) {
-		if (typeof callback === 'function') {
-			callback();
-		}
-		self.emit('exit', code, signal);
-	});
-	self._stdio = self._native_client_child.stdio;
+  // Create new sandbox
+  self._native_client_child = self._spawnChildToRunCode(file_path, opts.env);
+  self._native_client_child.on('exit', function(code, signal) {
+    if (typeof callback === 'function') {
+      callback();
+    }
+    self.emit('exit', code, signal);
+  });
+  self._stdio = self._native_client_child.stdio;
 
-	if (self._stdout_dest) {
-		self._stdio[1].pipe(self._stdout_dest);
-	}
+  if (self._stdout_dest) {
+    self._stdio[1].pipe(self._stdout_dest);
+  }
 
-	if (self._stderr_dest) {
-		self._stdio[2].pipe(self._stderr_dest);
-	}
+  if (self._stderr_dest) {
+    self._stdio[2].pipe(self._stderr_dest);
+  }
 
-	self._message_handler.setupStdio(self._stdio);
+  self._message_handler.setupStdio(self._stdio);
 
 };
 
@@ -112,22 +111,22 @@ Sandbox.prototype._spawnChildToRunCode = function (file_path, envVars) {
     console.warn('NaCl is disabled');
   }
 
-	var cmd, args, env;
-	if (self._disableNacl) {
-		cmd = RUN_CONTRACT_DISABLE_NACL_COMMAND;
-		args = RUN_CONTRACT_DISABLE_NACL_ARGS.slice();
-		env = envVars;
-	} else {
-		cmd = RUN_CONTRACT_COMMAND;
-		args = RUN_CONTRACT_ARGS.slice();
+  var cmd, args, env;
+  if (self._disableNacl) {
+    cmd = RUN_CONTRACT_DISABLE_NACL_COMMAND;
+    args = RUN_CONTRACT_DISABLE_NACL_ARGS.slice();
+    env = envVars;
+  } else {
+    cmd = RUN_CONTRACT_COMMAND;
+    args = RUN_CONTRACT_ARGS.slice();
 
-		// To pass in environment variables via sel_ldr, we need to prefix them with
-		// 'NACLENV_'.
-		env = {};
-		Object.keys(envVars).forEach(function (key) {
-			env['NACLENV_'+key] = envVars[key];
-		});
-	}
+    // To pass in environment variables via sel_ldr, we need to prefix them with
+    // 'NACLENV_'.
+    env = {};
+    Object.keys(envVars).forEach(function (key) {
+      env['NACLENV_'+key] = envVars[key];
+    });
+  }
   args.push(file_path);
 
   if (self._enableGdb) {
@@ -173,11 +172,11 @@ Sandbox.prototype._handleChildProcessError = function (err) {
  * @param {String} ['SIGKILL'] message
  */
 Sandbox.prototype.kill = function(message){
-	var self = this;
+  var self = this;
 
-	if (self._native_client_child) {
-		self._native_client_child.kill(message);
-	}
+  if (self._native_client_child) {
+    self._native_client_child.kill(message);
+  }
 };
 
 /**
@@ -185,10 +184,10 @@ Sandbox.prototype.kill = function(message){
  * the parent process' stdout and stderr
  */
 Sandbox.prototype.passthroughStdio = function() {
-	var self = this;
+  var self = this;
 
-	self._stdout_dest = process.stdout;
-	self._stderr_dest = process.stderr;
+  self._stdout_dest = process.stdout;
+  self._stderr_dest = process.stderr;
 };
 
 /**
@@ -196,9 +195,9 @@ Sandbox.prototype.passthroughStdio = function() {
  * the given destination when the child process is spawned
  */
 Sandbox.prototype.pipeStdout = function(dest) {
-	var self = this;
+  var self = this;
 
-	self._stdout_dest = dest;
+  self._stdout_dest = dest;
 };
 
 /**
@@ -206,9 +205,9 @@ Sandbox.prototype.pipeStdout = function(dest) {
  * the given destination when the child process is spawned
  */
 Sandbox.prototype.pipeStderr = function(dest) {
-	var self = this;
+  var self = this;
 
-	self._stderr_dest = dest;
+  self._stderr_dest = dest;
 };
 
 module.exports = Sandbox;
