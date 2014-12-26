@@ -55,6 +55,7 @@ function Sandbox(opts) {
   });;
   self._native_client_child = null;
 
+  self.alive = true;
 }
 
 util.inherits(Sandbox, EventEmitter);
@@ -146,6 +147,13 @@ Sandbox.prototype._spawnChildToRunCode = function (file_path, envVars) {
   });
 
   child.on('error', self._handleChildProcessError.bind(self));
+  
+  // Handle all pipe errors
+  child.stdio[0].on('error', self._handleChildProcessError.bind(self));
+  child.stdio[1].on('error', self._handleChildProcessError.bind(self));
+  child.stdio[2].on('error', self._handleChildProcessError.bind(self));
+  child.stdio[3].on('error', self._handleChildProcessError.bind(self));
+  child.stdio[4].on('error', self._handleChildProcessError.bind(self));
 
   return child;
 };
@@ -154,6 +162,9 @@ Sandbox.prototype._spawnChildToRunCode = function (file_path, envVars) {
  * Handle child process errors and try to give a little bit better error information.
  */
 Sandbox.prototype._handleChildProcessError = function (err) {
+  var self = this;
+  
+  self.kill();
   // TODO Should this handle the error? Pass it on as an event?
   if (err.code === 'ENOENT') {
     // TODO Error information could be further improved, check whether libc is there etc.
@@ -174,9 +185,19 @@ Sandbox.prototype._handleChildProcessError = function (err) {
 Sandbox.prototype.kill = function(message){
   var self = this;
 
-  if (self._native_client_child) {
-    self._native_client_child.kill(message);
-  }
+  // Nullify these so nothing tries to write to them anymore
+  self._stdio = null;
+  self._message_handler._stdio = null;
+
+  self._native_client_child.stdio[0].removeListener('error', self._handleChildProcessError.bind(self));
+  self._native_client_child.stdio[1].removeListener('error', self._handleChildProcessError.bind(self));
+  self._native_client_child.stdio[2].removeListener('error', self._handleChildProcessError.bind(self));
+  self._native_client_child.stdio[3].removeListener('error', self._handleChildProcessError.bind(self));
+  self._native_client_child.stdio[4].removeListener('error', self._handleChildProcessError.bind(self));
+
+	if (self._native_client_child) {
+		self._native_client_child.kill(message);
+	}
 };
 
 /**
