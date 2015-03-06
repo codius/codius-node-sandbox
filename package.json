@@ -8,7 +8,7 @@
     "Stefan Thomas <stefan@ripple.com>",
     "Brandon Wilson <bwilson@ripple.com>"
   ],
-  "version": "0.1.0",
+  "version": "1.2.0",
   "main": "./sandbox",
   "directories": {
     "lib": "./lib",
